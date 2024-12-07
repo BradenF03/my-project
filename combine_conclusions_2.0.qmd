@@ -1,0 +1,265 @@
+---
+title: "Final Project"
+format: docx
+editor: visual
+---
+
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+draft_combine_stats <- read.csv("/Users/bradenfoulks/Desktop/Classes/Senior Year/Data Science/R docs/NBA_data/csv/draft_combine_stats.csv", header = TRUE)
+draft_history <- read.csv("/Users/bradenfoulks/Desktop/Classes/Senior Year/Data Science/R docs/NBA_data/csv/draft_history.csv", header = TRUE)
+```
+
+```{r}
+#removing unnecessary columns
+draft_combine_stats_clean <- draft_combine_stats %>% 
+  filter(season >= 2007 & season <= 2015) %>% 
+  select(season, player_name, height_wo_shoes, weight, wingspan, max_vertical_leap, lane_agility_time, three_quarter_sprint, bench_press)
+```
+
+#Merging the data
+
+```{r}
+library(dplyr)
+
+# Left join the two datasets
+merged_data <- draft_combine_stats_clean %>%
+  left_join(draft_history, by = c("season" = "season", "player_name" = "player_name")) %>% 
+  select(season, player_name, height_wo_shoes, weight, wingspan, max_vertical_leap, lane_agility_time, three_quarter_sprint, bench_press, overall_pick)
+
+```
+
+#Graphs #Strength
+
+```{r}
+# Create the linear model for Figure 3
+lm_bench_press <- lm(overall_pick ~ bench_press, data = merged_data)
+
+# Display the summary of the regression
+summary(lm_bench_press)
+
+# Generate the scatter plot with regression line
+ggplot(merged_data, aes(x = bench_press, y = overall_pick)) +
+  geom_point(size = 2, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Strength: Bench Press Repetitions vs. Overall Pick",
+    x = "Bench Press (reps)",
+    y = "Overall Pick"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12) # Adjust the size to make the title smaller
+  )
+
+
+```
+
+#Athletisism
+
+```{r}
+# Perform linear regression
+vertical_leap_lm <- lm(overall_pick ~ max_vertical_leap, data = merged_data)
+
+# Display regression summary
+summary(vertical_leap_lm)
+
+# Visualize with ggplot
+ggplot(merged_data, aes(x = max_vertical_leap, y = overall_pick)) +
+  geom_point(size = 3, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Athleticism: Maximum Vertical Leap vs. Overall Pick",
+    x = "Vertical Leap (in)",
+    y = "Overall Pick"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 10) # Adjust the size here
+  )
+
+
+```
+```{r}
+merged_data_final <- merged_data %>%
+  mutate(speed = lane_agility_time + three_quarter_sprint)  # Add the new 'Speed' column
+```
+
+
+```{r}
+#Speed
+
+# Create a new dataset with the combined column
+merged_data_speed <- merged_data %>%
+  mutate(speed = lane_agility_time + three_quarter_sprint) %>%  # Add the new 'Speed' column
+  select(season, player_name, speed, overall_pick)
+merged_data_speed
+```
+
+```{r}
+# Perform linear regression
+speed_lm <- lm(overall_pick ~ speed, data = merged_data_speed)
+
+# Display regression summary
+summary(speed_lm)
+
+# Visualize with ggplot
+ggplot(merged_data_speed, aes(x = speed, y = overall_pick)) +
+  geom_point(size = 3, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Athleticism: Speed vs Overall Pick",
+    x = "Speed",
+    y = "Overall Pick"
+  ) +
+  theme_minimal()
+
+```
+
+#Size
+
+```{r}
+# Create the linear model for Height vs. Overall Pick
+lm_height <- lm(overall_pick ~ height_wo_shoes, data = merged_data)
+
+# Display the summary of the regression
+summary(lm_height)
+
+# Generate the scatter plot with regression line
+ggplot(merged_data, aes(x = height_wo_shoes, y = overall_pick)) +
+  geom_point(size = 3, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Size: Height (in) vs Overall Pick",
+    x = "Height (in)",
+    y = "Overall Pick"
+  ) +
+  theme_minimal()
+
+
+```
+
+```{r}
+# Create the linear model for Weight vs. Overall Pick
+lm_weight <- lm(overall_pick ~ weight, data = merged_data)
+
+# Display the summary of the regression
+summary(lm_weight)
+
+# Generate the scatter plot with regression line
+ggplot(merged_data, aes(x = weight, y = overall_pick)) +
+  geom_point(size = 3, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Size: Weight (lbs) vs Overall Pick",
+    x = "Weight (lbs)",
+    y = "Overall Pick"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+# Create the linear model for Wingspan vs. Overall Pick
+lm_wingspan <- lm(overall_pick ~ wingspan, data = merged_data)
+
+# Display the summary of the regression
+summary(lm_wingspan)
+
+# Generate the scatter plot with regression line
+ggplot(merged_data, aes(x = wingspan, y = overall_pick)) +
+  geom_point(size = 3, color = "blue", alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") + # Add a trend line
+  labs(
+    title = "Size: Wingspan (in) vs Overall Pick",
+    x = "Wingspan (in)",
+    y = "Overall Pick"
+  ) +
+  theme_minimal()
+```
+
+#Regression
+```{r}
+# Multiple regression model
+multiple_lm <- lm(overall_pick ~ max_vertical_leap + speed + bench_press + height_wo_shoes + weight + wingspan, data = merged_data_final)
+
+# Display regression summary
+summary(multiple_lm)
+
+```
+
+
+#Best Performance
+
+```{r}
+#lottery picks
+merged_data_top14_per_year <- merged_data %>% 
+  filter(overall_pick >= 1 & overall_pick <= 14, season >= 2007 & season <= 2015) %>% 
+arrange(season, overall_pick)
+merged_data_top14_per_year
+```
+
+```{r}
+#average height, weight, wingspan 
+
+top14_averages <- merged_data_top14_per_year %>% 
+  summarise(AverageHeight = mean(height_wo_shoes, na.rm = TRUE), AverageWeight = mean(weight, na.rm = TRUE), AverageWingspan = mean(wingspan, na.rm = TRUE))
+
+print(top14_averages)
+```
+
+```{r}
+merged_data_with_speed <- merged_data %>%
+  mutate(speed = lane_agility_time + three_quarter_sprint) %>%  # Add the new 'Speed' column
+  select(season, player_name, height_wo_shoes, weight, wingspan, max_vertical_leap, speed, bench_press, overall_pick)
+```
+
+```{r}
+merged_data_filtered_hww <- merged_data_with_speed %>%
+  filter(
+    height_wo_shoes >= 76 & height_wo_shoes <= 80,     # Filter heights between 78 and 79
+    weight >= 216 & weight <= 220,   # Filter weights between 218 and 219
+    wingspan >= 81 & wingspan <= 85)  # Filter wingspans between 83 and 84
+print(merged_data_filtered_hww)
+```
+
+```{r}
+#ranking
+merged_data_ranked <- merged_data_filtered_hww %>% 
+  filter(!is.na(speed), !is.na(bench_press))
+print(merged_data_ranked)
+```
+
+```{r}
+#Speed ranks
+
+speed_ranked <- merged_data_filtered_hww %>%
+   arrange(speed) %>%
+   filter(
+    height_wo_shoes >= 76 & height_wo_shoes <= 80,     # Filter heights between 78 and 79
+    weight >= 216 & weight <= 220,   # Filter weights between 218 and 219
+    wingspan >= 81 & wingspan <= 85)  # Filter wingspans between 83 and 84
+
+
+print(speed_ranked)
+```
+
+```{r}
+#Bench Press ranks
+
+bench_ranked <- merged_data_filtered_hww %>% 
+  arrange(desc(bench_press))
+
+print(bench_ranked)
+```
+
+```{r}
+#Vertical ranks
+
+vertical_ranked <- merged_data_filtered_hww %>% 
+  arrange(desc(max_vertical_leap))
+
+print(vertical_ranked)
+```
