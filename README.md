@@ -1,2 +1,3 @@
 #My Project
-This is our final project
+This is my project
+THis is the change I made in R
